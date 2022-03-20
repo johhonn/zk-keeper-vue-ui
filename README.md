@@ -5,10 +5,10 @@ Generate ZK proofs from a simple vue ui
 
 install zk-keeper: https://github.com/akinovak/zk-keeper
 
-yarn
-
-chmod +x /scripts/serve.sh
+run http-server for compiled circuits
+chmod +x ./scripts/serve.sh
 
 ./scripts/serve.sh
 
+yarn
 yarn run serve
