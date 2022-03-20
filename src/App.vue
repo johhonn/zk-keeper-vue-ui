@@ -5,11 +5,10 @@
     <div class="buttonGroup" style="margin-top: 2em;">
       <button class="big-button" v-if="!this.identity_commit || !this.currentAccount" @click="connectWallet">Connect Wallet</button>
 
-
-      <b-loading :is-full-page="isFullPage" v-model="isLoading" :can-cancel="true"></b-loading>
-
-
-      <button class="big-button" v-if="this.identity_commit && !this.joinState" @click="joinGroup">Join Group</button>
+      <button class="big-button" v-if="this.identity_commit && !this.joinState" @click="joinGroup">
+        Join Group
+        <b-loading :is-full-page="isFullPage" v-model="isLoading" :can-cancel="true"></b-loading>
+      </button>
       <button class="big-button" v-else-if="this.joinState && !this.proof" @click="createProof">Create Proof</button>
     </div>
 
@@ -88,10 +87,16 @@ export default {
       joinState: null,
       readMoreActivated: false,
       isLoading: false,
-      isFullPage: true
+      isFullPage: false
     }
   },
   methods: {
+    openLoading() {
+         this.isLoading = true
+         setTimeout(() => {
+             this.isLoading = false
+         }, 10 * 1000)
+     },
     copyToClipboard() {
         this.$refs.generator.focus();
         document.execCommand('copy');
@@ -145,15 +150,16 @@ export default {
       }
     },
     joinGroup: async function () {
+      this.isLoading = true // loading spinner
+      // setTimeout(() => {
+      //     this.isLoading = false
+      // }, 10 * 1000)
       let r = await this.contract.addDAOIdentity(
         1,
         ethers.BigNumber.from(`0x${this.identity_commit.toString()}`),
       )
       this.joinState = true
-      this.isLoading = true // loading spinner
-      setTimeout(() => {
-          this.isLoading = false
-      }, 10 * 1000)
+      this.isLoading = false
       // console.log(await r.wait())
     },
     createProof: async function () {
