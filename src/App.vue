@@ -4,6 +4,11 @@
     <h3 style="">Anonymously prove you own an NFT</h3>
     <div class="buttonGroup" style="margin-top: 2em;">
       <button class="big-button" v-if="!this.identity_commit || !this.currentAccount" @click="connectWallet">Connect Wallet</button>
+
+
+      <b-loading :is-full-page="isFullPage" v-model="isLoading" :can-cancel="true"></b-loading>
+
+
       <button class="big-button" v-if="this.identity_commit && !this.joinState" @click="joinGroup">Join Group</button>
       <button class="big-button" v-else-if="this.joinState && !this.proof" @click="createProof">Create Proof</button>
     </div>
@@ -59,7 +64,6 @@
 
 <script>
 import { ZkIdentity } from '@zk-kit/identity'
-
 // import { Semaphore } from "@zk-kit/protocols"
 import HelloWorld from './components/HelloWorld.vue'
 import { abi } from './testStake.json'
@@ -82,7 +86,9 @@ export default {
       client: null,
       proof: null,
       joinState: null,
-      readMoreActivated: false
+      readMoreActivated: false,
+      isLoading: false,
+      isFullPage: true
     }
   },
   methods: {
@@ -94,23 +100,6 @@ export default {
     activateReadMore(){
         this.readMoreActivated = true;
     },
-     // love() {
-     //   this.$confetti.update({
-     //     particles: [
-     //       {
-     //         type: 'heart',
-     //       },
-     //       {
-     //         type: 'circle',
-     //       },
-     //     ],
-     //     defaultColors: [
-     //       'red',
-     //       'pink',
-     //       '#ba0000'
-     //     ],
-     //   });
-     // },
     getZKIdentity() {
       const identity = new ZkIdentity()
       const identityCommitment = identity.genIdentityCommitment()
@@ -123,13 +112,13 @@ export default {
         const { ethereum, injected } = window
         console.log(window)
         if (injected) {
-          console.log('connecting')
+          console.log('connecting....')
           const client = await injected.connect()
           this.client = client
-          console.log(client)
+          console.log(`client: ${client}`)
           const ZKID = await client.getActiveIdentity()
-          console.log(await client.getIdentityCommitments())
-          console.log(await client.getActiveIdentity())
+          // console.log(await client.getIdentityCommitments())
+          // console.log(await client.getActiveIdentity())
           this.identity_commit = ZKID
         }
         if (!ethereum) {
@@ -141,7 +130,7 @@ export default {
         await provider.send('eth_requestAccounts', [])
         const signer = provider.getSigner()
 
-        console.log('Connected', await signer.getAddress())
+        console.log('Connected: ', await signer.getAddress())
         const contract = new ethers.Contract(
           '0x465f7Ac3Bd00948fE7Fb8939945dE1bFda62C873',
           abi,
@@ -161,7 +150,11 @@ export default {
         ethers.BigNumber.from(`0x${this.identity_commit.toString()}`),
       )
       this.joinState = true
-      console.log(await r.wait())
+      this.isLoading = true // loading spinner
+      setTimeout(() => {
+          this.isLoading = false
+      }, 10 * 1000)
+      // console.log(await r.wait())
     },
     createProof: async function () {
       const circuitFilePath = 'http://localhost:8000/semaphore.wasm'
@@ -169,7 +162,7 @@ export default {
       let leaves = await this.contract.getGroupCommitments(1)
 
       leaves = leaves.map((element) => element._hex.slice(2))
-      console.log(leaves)
+      console.log(`leaves: ${leaves}`)
 
       const storageArtifacts = {
         leaves: leaves,
