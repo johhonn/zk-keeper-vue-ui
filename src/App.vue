@@ -1,16 +1,36 @@
 <template>
   <div id="app">
-    <h1 style="font-size:100px; margin:0; padding:0">ZK-NFT</h1>
+    <h1 style="font-size: 100px; margin: 0; padding: 0;">ZK-NFT</h1>
     <h3 style="">Anonymously prove you own an NFT</h3>
     <div class="buttonGroup" style="margin-top: 2em;">
-      <button class="big-button" v-if="!this.identity_commit || !this.currentAccount" @click="connectWallet">Connect Wallet</button>
-
-      <button class="big-button" v-if="this.identity_commit && !this.joinState" @click="joinGroup">
-        Join Group
-        <b-loading :is-full-page="false" v-model="isLoading" :can-cancel="true"></b-loading>
+      <button
+        class="big-button"
+        v-if="!this.identity_commit || !this.currentAccount"
+        @click="connectWallet"
+      >
+        Connect Wallet
       </button>
 
-      <button class="big-button" v-else-if="this.joinState && !this.proof" @click="createProof">Create Proof</button>
+      <button
+        class="big-button"
+        v-if="this.identity_commit && !this.joinState"
+        @click="joinGroup"
+      >
+        Join Group
+        <b-loading
+          :is-full-page="false"
+          v-model="isLoading"
+          :can-cancel="true"
+        ></b-loading>
+      </button>
+
+      <button
+        class="big-button"
+        v-else-if="this.joinState && !this.proof"
+        @click="createProof"
+      >
+        Create Proof
+      </button>
     </div>
 
     <div class="walletConnect">
@@ -19,20 +39,37 @@
     </div>
 
     <div v-if="this.proof" class="padding: 0 2em 0 2em">
-      <div style="min-width:625px;" class="">
+      <div style="min-width: 625px;" class="">
         <div class="field has-addons">
-          <button id="copyToClipboard" v-on:click.prevent="copyToClipboard" class="control button is-medium is-primary is-rounded">Copy 📋</button>
+          <button
+            id="copyToClipboard"
+            v-on:click.prevent="copyToClipboard"
+            class="control button is-medium is-primary is-rounded"
+          >
+            Copy 📋
+          </button>
 
-            <p class="is-medium button control" v-if="!readMoreActivated" value={this.proof}>{{this.proof.slice(0, 50)}}</p>
-            <p class="is-medium button control" v-if="readMoreActivated">{{this.proof}}</p>
-            <button class=" button is-medium is-rounded" v-if="!readMoreActivated" @click="activateReadMore"> expand...</button>
-            <input type="hidden" id="proof" :value="this.proof">
-
+          <p
+            class="is-medium button control"
+            v-if="!readMoreActivated"
+            value="{this.proof}"
+          >
+            {{ this.proof.slice(0, 50) }}
+          </p>
+          <p class="is-medium button control" v-if="readMoreActivated">
+            {{ this.proof }}
+          </p>
+          <button
+            class="button is-medium is-rounded"
+            v-if="!readMoreActivated"
+            @click="activateReadMore"
+          >
+            expand...
+          </button>
+          <input type="hidden" id="proof" :value="this.proof" />
+        </div>
       </div>
     </div>
-  </div>
-
-
   </div>
 </template>
 
@@ -43,8 +80,7 @@ import HelloWorld from './components/HelloWorld.vue'
 import { abi } from './testStake.json'
 import { ethers } from 'ethers'
 import axios from 'axios'
-import './assets/my.css';
-
+import './assets/my.css'
 
 export default {
   name: 'App',
@@ -61,32 +97,32 @@ export default {
       proof: null,
       joinState: null,
       readMoreActivated: false,
-      isLoading: false
+      isLoading: false,
     }
   },
   methods: {
     openLoading() {
-         this.isLoading = true
-         setTimeout(() => {
-             this.isLoading = false
-         }, 10 * 1000)
-     },
-    copyToClipboard() {
-        let textToCopy = document.querySelector('#proof')
-        textToCopy.setAttribute('type', 'text')
-        textToCopy.select()
-        try {
-            var successful = document.execCommand('copy');
-            var msg = successful ? 'successful' : 'unsuccessful';
-            this.$buefy.toast.open('Copied!');
-          } catch (err) {
-            this.$buefy.toast.open('Unable to copy :(');
-          }
-        textToCopy.setAttribute('type', 'hidden')
-        window.getSelection().removeAllRanges()
+      this.isLoading = true
+      setTimeout(() => {
+        this.isLoading = false
+      }, 10 * 1000)
     },
-    activateReadMore(){
-        this.readMoreActivated = true;
+    copyToClipboard() {
+      let textToCopy = document.querySelector('#proof')
+      textToCopy.setAttribute('type', 'text')
+      textToCopy.select()
+      try {
+        var successful = document.execCommand('copy')
+        var msg = successful ? 'successful' : 'unsuccessful'
+        this.$buefy.toast.open('Copied!')
+      } catch (err) {
+        this.$buefy.toast.open('Unable to copy :(')
+      }
+      textToCopy.setAttribute('type', 'hidden')
+      window.getSelection().removeAllRanges()
+    },
+    activateReadMore() {
+      this.readMoreActivated = true
     },
     getZKIdentity() {
       const identity = new ZkIdentity()
@@ -182,12 +218,13 @@ export default {
         // this.proof = hexified
         // console.log(hexified)
 
-        this.proof = "0x7b2270726f6f66223a5b22353432353232373033373035303334393431353934303039323538393138333439393230303338383831303731303036363236383733363637363733373235393035333537343132303639222c2234303339323330363730323239363838343035303934383834353137353238393932393639373437353532363937363133393833333431323034303737313236303230323135383635303031222c2231373130373533383030333931383033343230393538373337313631353932363530303135313937353031393339323233393638303835353434323339353034363436343333323938363839222c2234343237343239353639303939303132303736363932323235313333333534323836373236303332323930343936323539323036363433393239323735333236323338363135353836383738222c2232363830343632333430363739343733383938333530383637363238313132363036383236323939303135333535383433393935303633393537363131363231313533383630343239363332222c2233313635303130363236343133363532323833323038393938333232313536353534343838383638333631373639313131393537353836313835343339303735313031303235303131383838222c2234313733303339363636303231373031363632323631353338343431343237313739323839333335363838333037393638323035363038333033333238373035363031333639383635363130222c2237303434353834383830333032363338303837303930393635393232323533303139333733363131323234343733373535313534343039373536343131383237303637373331303533373833225d2c226e756c6c696669657248617368223a2239373433333534393632373136323530373139333238353736393235343834313839333733383232363739323237313338393339303532313937343733323335313831373933323038343032222c22656e746974794964223a2231222c226368616c6c656e6765223a226861686168616861227d"
+        this.proof =
+          '7b2270726f6f66223a5b2236383438363639303831353333343839393935323837313930313032373735363831363331393034343436313339333033353438343231343931303832333431393531353531313935343530222c2233303631393939383136373738333433353332303837313334343239373339363636393138303937303735323034313432373338393330363736373430383433393131333836363234363632222c223132373838333036383633323737323934373736333431363039343634313335393436363435303733383033383837323833393731353534323433333134393832313233333235313038343538222c223133363736303932383938343631353134393330373132313033373338353731383134393437353035393537313730383332383534323939383139343439383131393339393435383532353430222c2237353435353533353834393839383931383037303734373935343734353737373335333135323734393232353236323136383537313132333137393130383137373937313138333533363038222c223230333436313735333038333536393635303636333832373239343234343135393631303138383135353736343234353539353931363038363235373337303035373933343435303436353732222c223230393533373733393533383137353333393137323432343230323430323739383432303338373235393133363437383737323730393031383736303433383938353333353738363033333632222c223131343236333535333831303833343631353934383038333538343237323439363633373332373437313732393934343030303138353830333638323231353339323031303237353034343831225d2c226e756c6c696669657248617368223a2239373433333534393632373136323530373139333238353736393235343834313839333733383232363739323237313338393339303532313937343733323335313831373933323038343032222c22656e746974794964223a2231222c226368616c6c656e6765223a226861686168616861227d'
         this.readMoreActivated = false
-        this.$confetti.start();
+        this.$confetti.start()
         setTimeout(() => {
-          this.$confetti.stop();
-       }, 5000);
+          this.$confetti.stop()
+        }, 5000)
       } catch (e) {
         console.error(e)
       }
@@ -206,8 +243,4 @@ export default {
   margin-top: 60px;
   overflow-wrap: break-word;
 }
-
-
-
-
 </style>
