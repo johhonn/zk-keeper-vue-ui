@@ -7,55 +7,30 @@
 
       <button class="big-button" v-if="this.identity_commit && !this.joinState" @click="joinGroup">
         Join Group
-        <b-loading :is-full-page="isFullPage" v-model="isLoading" :can-cancel="true"></b-loading>
+        <b-loading :is-full-page="false" v-model="isLoading" :can-cancel="true"></b-loading>
       </button>
+
       <button class="big-button" v-else-if="this.joinState && !this.proof" @click="createProof">Create Proof</button>
     </div>
 
     <div class="walletConnect">
-      <!-- <p v-if="this.identity_commit" style="" >ZK IDentity {{ this.identity_commit }}</p> -->
+      <p v-if="this.identity_commit" style="">🔐 {{ this.identity_commit }}</p>
       <p v-if="this.currentAccount" style="">🟢 {{ this.currentAccount }}</p>
     </div>
 
-    <div v-if="this.proof">
+    <div v-if="this.proof" class="padding: 0 2em 0 2em">
+      <div style="min-width:625px;" class="">
+        <div class="field has-addons">
+          <button id="copyToClipboard" v-on:click.prevent="copyToClipboard" class="control button is-medium is-primary is-rounded">Copy 📋</button>
 
-      <div class="">
-        <a id="copyToClipboard" v-on:click.prevent="copyToClipboard" class="button control is-medium">
-          <span class="icon">📋</span>
-        </a>
+            <p class="is-medium button control" v-if="!readMoreActivated" value={this.proof}>{{this.proof.slice(0, 50)}}</p>
+            <p class="is-medium button control" v-if="readMoreActivated">{{this.proof}}</p>
+            <button class=" button is-medium is-rounded" v-if="!readMoreActivated" @click="activateReadMore"> expand...</button>
+            <input type="hidden" id="proof" :value="this.proof">
+
       </div>
-
-      <div class="">
-        <span v-if="!readMoreActivated" value={this.proof}>{{this.proof.slice(0, 50)}}</span>
-        <a class="" v-if="!readMoreActivated" @click="activateReadMore" href=""> expand...</a>
-        <span v-if="readMoreActivated" v-html="this.proof"></span>
-      </div>
-
     </div>
-
-    <!-- /* Copied from codepen */ -->
-          <div style="min-width:625px;" class="column is-5 is-vertical-centered">
-            <div class="field has-addons">
-              <button id="copyButton" class="control button is-medium is-primary" v-on:click.prevent="copyToClipboard">Copy 📋</button>
-
-              <!-- <a id="copyToClipboard"  class="button control is-medium ">
-                <span class="icon">
-                  <i class="fa fa-clipboard"></i> 📋
-                </span>
-              </a> -->
-
-
-
-              <div class="control" style="width:100%">
-                <span ref="generator" id="generator" v-if="!readMoreActivated && this.proof" class="input is-medium is-rounded"  type="text" readonly value={this.proof}>{{this.proof.slice(0, 50)}}</span>
-
-                <!-- <input v-on:focus="$event.target.select()" ref="generator" v-model="shownUUID" id="generator" class="input is-medium is-rounded" type="text" readonly placeholder="GUID goes here"> -->
-              </div>
-
-
-
-            </div>
-          </div>
+  </div>
 
 
   </div>
@@ -86,8 +61,7 @@ export default {
       proof: null,
       joinState: null,
       readMoreActivated: false,
-      isLoading: false,
-      isFullPage: false
+      isLoading: false
     }
   },
   methods: {
@@ -98,9 +72,18 @@ export default {
          }, 10 * 1000)
      },
     copyToClipboard() {
-        this.$refs.generator.focus();
-        document.execCommand('copy');
-        this.$buefy.toast.open('Copied!');
+        let textToCopy = document.querySelector('#proof')
+        textToCopy.setAttribute('type', 'text')
+        textToCopy.select()
+        try {
+            var successful = document.execCommand('copy');
+            var msg = successful ? 'successful' : 'unsuccessful';
+            this.$buefy.toast.open('Copied!');
+          } catch (err) {
+            this.$buefy.toast.open('Unable to copy :(');
+          }
+        textToCopy.setAttribute('type', 'hidden')
+        window.getSelection().removeAllRanges()
     },
     activateReadMore(){
         this.readMoreActivated = true;
