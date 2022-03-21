@@ -7,9 +7,9 @@
 
 
       <b-loading :is-full-page="isFullPage" v-model="isLoading" :can-cancel="true"></b-loading>
-
-
-      <button class="big-button" v-if="this.identity_commit && !this.joinState" @click="joinGroup">Join Group</button>
+      <button class="big-button" v-if="this.identity_commit && !this.joinState && !this.isApproved && (parseInt(this.balance.toString())===0)" @click="mint">Mint NFT</button>
+      <button class="big-button" v-if="this.identity_commit && !this.joinState && !this.isApproved && (this.balance>0)" @click="approveNFT">Approve NFT</button>
+      <button class="big-button" v-if="this.identity_commit && !this.joinState && this.isApproved && (this.balance>0)" @click="joinGroup">Join Group</button>
       <button class="big-button" v-else-if="this.joinState && !this.proof" @click="createProof">Create Proof</button>
     </div>
 
@@ -67,6 +67,7 @@ import { ZkIdentity } from '@zk-kit/identity'
 // import { Semaphore } from "@zk-kit/protocols"
 import HelloWorld from './components/HelloWorld.vue'
 import { abi } from './testStake.json'
+import { nft_abi } from './nft.json'
 import { ethers } from 'ethers'
 import axios from 'axios'
 import './assets/my.css';
@@ -81,14 +82,18 @@ export default {
       contractAddress:
         'set this to your contract address, if you have more than one contract create more specific variables(greeterAddress or votingAddress)',
       contract: null,
+      nft:null,
       identity_secret: null,
       identity_commit: null,
       client: null,
+
       proof: null,
       joinState: null,
       readMoreActivated: false,
       isLoading: false,
-      isFullPage: true
+      isFullPage: true,
+      balance:0,
+      isApproved:false
     }
   },
   methods: {
@@ -132,22 +137,44 @@ export default {
 
         console.log('Connected: ', await signer.getAddress())
         const contract = new ethers.Contract(
-          '0x465f7Ac3Bd00948fE7Fb8939945dE1bFda62C873',
+          '0x46857511C4D11b21BCbB5976F7446049af4E7bA3',
           abi,
           signer,
         )
-
+        const nft = new ethers.Contract(
+          '0x040F1BcC018cc1e55B8779E723219D24b71e7c45',
+          nft_abi,
+          signer,
+        )
+       
         this.contract = contract
+        this.nft=nft;
         this.provider = provider
         this.currentAccount = await signer.getAddress()
+        console.log('getting balance')
+        this.balance=await nft.balanceOf(this.currentAccount)
+        console.log('getting approval')
+        this.isApproved=await nft.isApprovedForAll(this.currentAccount,this.contract.address)
+        console.log(this.balance)
+        console.log(this.isApproved)
       } catch (error) {
         console.log(error)
       }
     },
+    approveNFT:async function(){
+        await this.nft.setApprovalForAll(this.contract.address,true)
+        this.isApproved=await this.nft.isApprovedForAll(this.currentAccount,this.contract.address)
+    },
+    mint:async function(){
+        await this.nft.simpleMint(this.currentAccount)
+    },
     joinGroup: async function () {
+      let id =await this.nft.tokenByIndex(0)
+      console.log(`the nft id is ${id}`)
       let r = await this.contract.addDAOIdentity(
         1,
         ethers.BigNumber.from(`0x${this.identity_commit.toString()}`),
+        id
       )
       this.joinState = true
       this.isLoading = true // loading spinner
